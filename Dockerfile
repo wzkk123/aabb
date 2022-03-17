@@ -27,7 +27,7 @@ RUN pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
 && apk add py3-kiwisolver \
 && apk add py3-pillow \
 && apk add py3-matplotlib \
-&& pip install wordcloud-1.8.1-cp37-cp37m-win_amd64.whl \
+&& pip install wordcloud-1.8.1-cp38-cp38-win_amd64.whl \
 # pip install scipy 等数学包失败，可使用 apk add py3-scipy 进行， 参考安装 https://pkgs.alpinelinux.org/packages?name=py3-scipy&branch=v3.13
 && pip install --user -r requirements.txt
 
