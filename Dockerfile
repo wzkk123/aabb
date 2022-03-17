@@ -9,7 +9,6 @@ FROM alpine:3.13
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositories \
 # 安装python3
 && apk add --update --no-cache python3 py3-pip \
-&& python -V \
 && rm -rf /var/cache/apk/*
 
 # 拷贝当前项目到/app目录下
