@@ -10,15 +10,15 @@ import matplotlib.pyplot as plt
 from imageio import imread
 
 
-with open('E:\竞赛数据集\设计大赛\Python评论.txt', encoding='utf-8') as f:
-    file = f.read()
+    
+@app.route('/', methods=['POST'])
+def upload():
+    file
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
-@app.route('/', methods=['POST'])
-def upload():
-    bg_pic = imread('E:\竞赛数据集\设计大赛\R-C.jpg')
-    wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='E:\竞赛数据集\设计大赛\华文楷体.ttf',scale=1.5).generate(text)
+    bg_pic = imread('R-C.jpg')
+    wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='华文楷体.ttf',scale=1.5).generate(text)
     '''参数说明：
     mask:设置背景图片   background_color:设置背景颜色
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
