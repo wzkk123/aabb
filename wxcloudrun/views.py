@@ -12,7 +12,7 @@ import  os
 import jieba
 
     
-@app.route('/upload', methods=['POST'])
+@app.route('/', methods=['POST','GET'])
 def upload():
 #     all_files = [f for f in os.listdir('/app/wxcloudrun')]
 #     return str(all_files) #获取当前工作目录路径
@@ -26,7 +26,11 @@ def upload():
     mask:设置背景图片   background_color:设置背景颜色
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
     generate(text)：根据文本生成词云 '''
-    
-    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
-    return "ok"
+    plt.imshow(wordcloud)
+    #显示图片时不显示坐标尺寸
+    plt.axis('off')
+    #显示词云图片
+    plt.show()
+    #wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
+    return "success"
     
