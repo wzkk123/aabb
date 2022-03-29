@@ -13,7 +13,7 @@ from imageio import imread
     
 @app.route('/', methods=['POST'])
 def upload():
-    file
+    file = request.form['allcomment']
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
