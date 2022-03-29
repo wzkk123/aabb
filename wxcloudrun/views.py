@@ -25,5 +25,6 @@ def upload():
     mask:设置背景图片   background_color:设置背景颜色
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
     generate(text)：根据文本生成词云 '''
-    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
     return "ok"
+    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
+    
