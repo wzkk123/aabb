@@ -12,8 +12,8 @@ from imageio import imread
 
     
 @app.route('/', methods=['POST'])
-def upload():
-    file = request.form['allcomment']
+def upload(allcomment):
+    file = allcomment
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
