@@ -9,6 +9,7 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from imageio import imread
 import  os
+import jieba
 
     
 @app.route('/upload', methods=['POST'])
@@ -16,11 +17,9 @@ def upload():
 #     all_files = [f for f in os.listdir('/app/wxcloudrun')]
 #     return str(all_files) #获取当前工作目录路径
     file = request.form.get('allcomment')
-    seg = pkuseg.pkuseg()
-    return file
-    text = seg.cut(file)
-    text = str(text)
+    seg = jieba.lcut(file)
     return "ok"
+    text = str(seg)
     bg_pic = imread('/app/wxcloudrun/R-C.jpg')
     wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='/app/wxcloudrun/华文楷体.ttf',scale=1.5).generate(text)
     '''参数说明：
@@ -29,4 +28,5 @@ def upload():
     generate(text)：根据文本生成词云 '''
     
     wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
+    
     
