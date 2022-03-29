@@ -24,4 +24,4 @@ def upload():
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
     generate(text)：根据文本生成词云 '''
     wordcloud.to_file('ciyun.jpg')
-    return "index.html"
+    return render_template('index.html')
