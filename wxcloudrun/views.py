@@ -16,6 +16,7 @@ def upload():
 #     all_files = [f for f in os.listdir('/app/wxcloudrun')]
 #     return str(all_files) #获取当前工作目录路径
     file = request.form.get('allcomment')
+    return file
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
