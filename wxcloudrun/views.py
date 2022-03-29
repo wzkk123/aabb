@@ -8,11 +8,12 @@ import pkuseg
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from imageio import imread
-
+import  os
 
     
 @app.route('/upload', methods=['POST'])
 def upload():
+    return os.getcwd() #获取当前工作目录路径
     file = request.form.get('allcomment')
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
