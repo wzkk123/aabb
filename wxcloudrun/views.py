@@ -14,7 +14,7 @@ import  os
 @app.route('/upload', methods=['POST'])
 def upload():
     all_files = [f for f in os.listdir(os.getcwd() )]
-    return all_files #获取当前工作目录路径
+    return str(all_files) #获取当前工作目录路径
     file = request.form.get('allcomment')
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
