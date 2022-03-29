@@ -18,7 +18,7 @@ def upload():
 #     return str(all_files) #获取当前工作目录路径
     file = request.form.get('allcomment')
     seg = jieba.lcut(file)
-    return "ok"
+    
     text = str(seg)
     bg_pic = imread('/app/wxcloudrun/R-C.jpg')
     wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='/app/wxcloudrun/华文楷体.ttf',scale=1.5).generate(text)
@@ -28,5 +28,5 @@ def upload():
     generate(text)：根据文本生成词云 '''
     
     wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
-    
+    return "ok"
     
