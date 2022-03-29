@@ -12,8 +12,8 @@ from imageio import imread
 
     
 @app.route('/', methods=['POST'])
-def upload(allcomment):
-    file = allcomment
+def upload():
+    file = request.form.get('allcomment')
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
@@ -29,3 +29,4 @@ def upload(allcomment):
     plt.axis('off')
     #显示词云图片
     plt.show()
+    return 'ok'
