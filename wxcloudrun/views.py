@@ -19,12 +19,13 @@ def upload():
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
+    return "ok"
     bg_pic = imread('/app/wxcloudrun/R-C.jpg')
     wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='/app/wxcloudrun/华文楷体.ttf',scale=1.5).generate(text)
     '''参数说明：
     mask:设置背景图片   background_color:设置背景颜色
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
     generate(text)：根据文本生成词云 '''
-    return "ok"
+    
     wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
     
