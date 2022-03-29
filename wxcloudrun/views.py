@@ -13,17 +13,17 @@ import  os
     
 @app.route('/upload', methods=['POST'])
 def upload():
-    all_files = [f for f in os.listdir('/app/wxcloudrun')]
-    return str(all_files) #获取当前工作目录路径
+#     all_files = [f for f in os.listdir('/app/wxcloudrun')]
+#     return str(all_files) #获取当前工作目录路径
     file = request.form.get('allcomment')
     seg = pkuseg.pkuseg()
     text = seg.cut(file)
     text = str(text)
-    bg_pic = imread('R-C.jpg')
-    wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='华文楷体.ttf',scale=1.5).generate(text)
+    bg_pic = imread('/app/wxcloudrun/R-C.jpg')
+    wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='/app/wxcloudrun/华文楷体.ttf',scale=1.5).generate(text)
     '''参数说明：
     mask:设置背景图片   background_color:设置背景颜色
     scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
     generate(text)：根据文本生成词云 '''
-    wordcloud.to_file('ciyun.jpg')
-    return render_template('index.html')
+    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
+    return "ok"
