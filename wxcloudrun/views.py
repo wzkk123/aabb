@@ -29,4 +29,3 @@ def upload():
     plt.axis('off')
     #显示词云图片
     plt.show()
-    return 'ok'
