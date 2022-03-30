@@ -31,6 +31,7 @@ def upload():
     #plt.axis('off')
     #显示词云图片
     #plt.show()
-    #wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
-    return "success"
+    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
+    all_files = [f for f in os.listdir('/app/wxcloudrun')]
+    return str(all_files) #获取当前工作目录路径
     
