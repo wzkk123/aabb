@@ -10,56 +10,176 @@ import matplotlib.pyplot as plt
 from imageio import imread
 import  os
 import jieba
+import json
+import paddle
+import paddle as P
 
-def duixiangcunchu():
-  #获取token
-  response = requests.get('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxfb2997f507abf89e&secret=168726b557fb7221c96955cec59b3347',)
-  print()
-  data ={
-    "env": "prod-0gayxkvve034fe60",
-    "path": "ciyunimage/ciyun.jpg"
-  }
-  #转json
-  data = json.dumps(data)
-  response = requests.post("https://api.weixin.qq.com/tcb/uploadfile?access_token="+response.json()['access_token'],data)
-  print(response.json())
-  #response = json.loads(response.json())
-  #得到上传链接
+L = 125
+dataset = json.load(open(r'D:\三小中期答辩\唐诗.json', encoding='UTF-8'))
 
-  data2={
-    "Content-Type":(None,".jpg"),
-    "key": (None,"ciyunimage/ciyun.jpg"),
-    "Signature": (None,response.json()['authorization']),
-    'x-cos-security-token': (None,response.json()['token']),
-    'x-cos-meta-fileid': (None,response.json()['cos_file_id']),
-    'file': ('ciyun.jpg',open(r"D:\Study\pycharmpro\project\image\1.png","rb"))
-  }
-  #data2 = json.dumps(data2)
-  response2 = requests.post(response.json()['url'], files=data2)
-  return response.json()["file_id"]
+def get_allchars(dataset):
+    allchars = []
+    for i in range(len(dataset)):
+        allchars += [dataset[i][4].replace('\n', '')]
+    return ''.join(allchars)
 
-@app.route('/', methods=['POST','GET'])
+allchars = get_allchars(dataset)
+
+
+def get_dict(allchars):
+    char_freq_dict = dict()
+    for char in allchars:
+        if char not in char_freq_dict:
+            char_freq_dict[char] = 0
+        char_freq_dict[char] += 1
+    char_freq_dict = sorted(char_freq_dict.items(), key = lambda x:x[1], reverse = True)
+    char2id_dict = dict()
+    id2char_dict = dict()
+    n = 0
+    for i in range(len(char_freq_dict)):
+        char2id_dict[char_freq_dict[i][0]] = i
+        id2char_dict[i] = char_freq_dict[i][0]
+    return char2id_dict, id2char_dict
+
+char2id_dict, id2char_dict = get_dict(allchars)
+print(len(char2id_dict))
+char2id_dict['</s>'] = 7394
+char2id_dict['<START>'] = 7395
+char2id_dict['<END>'] = 7396
+id2char_dict[7394] = '</s>'
+id2char_dict[7395] = '<START>'
+id2char_dict[7396] = '<END>'
+
+
+
+class Net(paddle.nn.Layer):
+    def __init__(self, vocab_size=len(char2id_dict), embedding_dim=256, hidden_dim=512, num_layers=3):
+        super(Net, self).__init__()
+        self.embeddings = paddle.nn.Embedding(vocab_size, embedding_dim)
+        self.lstm = paddle.nn.LSTM(
+            input_size=embedding_dim,
+            hidden_size=hidden_dim,
+            num_layers=num_layers,
+        )
+        self.linear = paddle.nn.Linear(in_features=hidden_dim, out_features=vocab_size)
+
+    def forward(self, x, hidden=None):
+        y = self.embeddings(x)
+        if hidden is None:
+            y, hidden = self.lstm(y)
+        else:
+            y, hidden = self.lstm(y, hidden)
+        y = self.linear(y)
+        return y, hidden
+
+
+def show1(result, prefix=None, net=None, char2id_dict=char2id_dict, id2char_dict=id2char_dict, L=L):
+    if net == None:
+        net = Net()
+    net.eval()
+    result = list(result)
+    len_result = len(result)
+    x = P.to_tensor([char2id_dict['<START>']]).reshape([1, 1])
+    hidden = None
+
+    if prefix:
+        for i in range(len(prefix)):
+            _, hidden = net(x, hidden)
+            x = P.to_tensor([char2id_dict[prefix[i]]]).reshape([1, 1])
+
+    for i in range(len_result):
+        _, hidden = net(x, hidden)
+        x = P.to_tensor([char2id_dict[result[i]]]).reshape([1, 1])
+
+    for i in range(len_result, L):
+        x, hidden = net(x, hidden)
+        _, top_index = P.topk(x, 1)
+        # result += id2char_dict[top_index.numpy()[0][0][0]]
+        x = top_index.reshape([1, 1])
+        top_index = top_index.numpy()[0][0][0]
+        if id2char_dict[top_index] == '<END>':
+            # del result[-1]
+            break
+        result += id2char_dict[top_index]
+
+    return ''.join(result)
+
+
+def show2(acrostic, prefix=None, net=None, char2id_dict=char2id_dict, id2char_dict=id2char_dict):
+    if net == None:
+        net = Net()
+    net.eval()
+    len_acrostic = len(acrostic)
+    x = P.to_tensor([char2id_dict['<START>']]).reshape([1, 1])
+    hidden = None
+    result = []
+
+    if prefix:
+        for i in range(len(prefix)):
+            _, hidden = net(x, hidden)
+            x = P.to_tensor([char2id_dict[prefix[i]]]).reshape([1, 1])
+
+    previous = '<START>'
+    n = 0  # 已完成的藏头
+    for i in range(L):
+        # previous = id2char_dict[x.numpy()[0][0]]
+        x, hidden = net(x, hidden)
+        _, top_index = P.topk(x, 1)
+
+        if previous in {'。', '，', '?', '！', '<START>'}:
+            if n == len(acrostic):
+                break
+            x = P.to_tensor([char2id_dict[acrostic[n]]]).reshape([1, 1])
+            n += 1
+        else:
+            x = top_index.reshape([1, 1])
+        previous = id2char_dict[x.numpy()[0][0]]
+        result += previous
+
+    return ''.join(result)
+
+net = Net()
+model_path = r'D:\三小中期答辩\net.pdparams'
+net.set_state_dict(P.load(model_path))
+# result = input("请输入续写诗的第一句:\n")
+#
+# result1 = show1(result=result, prefix='明日何其多，总管一二三。', net = net)
+# print(result1)
+# acrostic = input("请输入藏头诗的第一句:\n")
+# result2 = show2(acrostic=acrostic, prefix='一二三四五六七，七六五四三二一。', net = net)
+# print(result2)
+
+from flask import Flask, request
+from flask import Flask, request
+import json
+
+app = Flask(__name__)
+changtoushis = ""
+xuxieshi1 = ""
+
+@app.route('/upload', methods=['POST'])
 def upload():
-#     all_files = [f for f in os.listdir('/app/wxcloudrun')]
-#     return str(all_files) #获取当前工作目录路径
-    file = request.form.get('allcomment')
-    seg = jieba.lcut(file)
-    
-    text = str(seg)
-    bg_pic = imread('/app/wxcloudrun/R-C.jpg')
-    wordcloud = WordCloud(mask=bg_pic,background_color='white',font_path='/app/wxcloudrun/华文楷体.ttf',scale=1.5).generate(text)
-    '''参数说明：
-    mask:设置背景图片   background_color:设置背景颜色
-    scale:按照比例进行放大画布，此处指长和宽都是原来画布的1.5倍
-    generate(text)：根据文本生成词云 '''
-    #plt.imshow(wordcloud)
-    #显示图片时不显示坐标尺寸
-    #plt.axis('off')
-    #显示词云图片
-    #plt.show()
-    wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
-    all_files = [f for f in os.listdir('/app/wxcloudrun')]
-    #return str(all_files) #获取当前工作目录路径
-    fileid = duixiangcunchu()
-    return fileid
-    
+    global changtoushis
+    text = request.values.get('text')
+    print(text)
+    acrostic = json.loads(text)
+    print(acrostic)
+    changtoushis = show2(acrostic=acrostic, prefix='一二三四五六七，七六五四三二一。', net = net)
+    print(changtoushis)
+    return changtoushis
+
+@app.route('/upload1', methods=['POST'])
+def upload1():
+    global xuxieshi1
+    text = request.values.get('text')
+    print(text)
+    acrostic = json.loads(text)
+    print(acrostic)
+    xuxieshi1 = show1(result=acrostic, prefix='明日何其多，总管一二三。', net = net)
+    print(xuxieshi1)
+    return xuxieshi1
+
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
+
