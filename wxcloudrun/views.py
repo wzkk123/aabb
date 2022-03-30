@@ -10,8 +10,34 @@ import matplotlib.pyplot as plt
 from imageio import imread
 import  os
 import jieba
-import im
-    
+
+def duixiangcunchu():
+  #获取token
+  response = requests.get('https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxfb2997f507abf89e&secret=168726b557fb7221c96955cec59b3347',)
+  print()
+  data ={
+    "env": "prod-0gayxkvve034fe60",
+    "path": "ciyunimage/ciyun.jpg"
+  }
+  #转json
+  data = json.dumps(data)
+  response = requests.post("https://api.weixin.qq.com/tcb/uploadfile?access_token="+response.json()['access_token'],data)
+  print(response.json())
+  #response = json.loads(response.json())
+  #得到上传链接
+
+  data2={
+    "Content-Type":(None,".jpg"),
+    "key": (None,"ciyunimage/ciyun.jpg"),
+    "Signature": (None,response.json()['authorization']),
+    'x-cos-security-token': (None,response.json()['token']),
+    'x-cos-meta-fileid': (None,response.json()['cos_file_id']),
+    'file': ('ciyun.jpg',open(r"D:\Study\pycharmpro\project\image\1.png","rb"))
+  }
+  #data2 = json.dumps(data2)
+  response2 = requests.post(response.json()['url'], files=data2)
+  return response.json()["file_id"]
+
 @app.route('/', methods=['POST','GET'])
 def upload():
 #     all_files = [f for f in os.listdir('/app/wxcloudrun')]
@@ -34,6 +60,6 @@ def upload():
     wordcloud.to_file('/app/wxcloudrun/ciyun.jpg')
     all_files = [f for f in os.listdir('/app/wxcloudrun')]
     #return str(all_files) #获取当前工作目录路径
-    fileid = im.duixiangcunchu()
+    fileid = duixiangcunchu()
     return fileid
     
